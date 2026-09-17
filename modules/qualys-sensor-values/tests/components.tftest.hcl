@@ -146,3 +146,11 @@ run "rejects_bad_enums_and_ranges" {
   }
   expect_failures = [var.qcs_sensor, var.admission_controller, var.tolerations]
 }
+
+run "rejects_credentials_smuggled_via_extra_values" {
+  command = plan
+  variables {
+    extra_values = { global = { customerId = "00000000-0000-0000-0000-000000000000" } }
+  }
+  expect_failures = [var.extra_values]
+}

@@ -60,8 +60,8 @@ locals {
 
   sensitive_set_values = flatten([
     for i, s in var.image_pull_secrets : concat(
-      s.password == null ? [] : [{ name = "global.imagePullSecrets[${i}].password", value = s.password }],
-      s.dockerconfigjson == null ? [] : [{ name = "global.imagePullSecrets[${i}].dockerconfigjson", value = s.dockerconfigjson }],
+      s.password == null ? [] : [{ name = "global.imagePullSecrets[${i}].password", value = replace(replace(s.password, "\\", "\\\\"), ",", "\\,"), type = "string" }],
+      s.dockerconfigjson == null ? [] : [{ name = "global.imagePullSecrets[${i}].dockerconfigjson", value = s.dockerconfigjson, type = "string" }],
     )
   ])
 }

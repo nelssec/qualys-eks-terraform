@@ -31,14 +31,14 @@ run "creates_scoped_read_policy_when_asked" {
     create_read_policy = true
     read_policy_name   = "fadv-qualys-secret-read"
   }
-  # The mocked aws_iam_policy_document data source returns arbitrary JSON,
-  # so this override supplies a fixed policy document. The Statement[0].Action
-  # assertion therefore verifies the override literal, not the real statement
-  # block in main.tf; real policy content is exercised by the integration gate.
+  # The mocked aws_iam_policy_document data source does not compute a real
+  # JSON document, so this override exists solely to give the mocked
+  # aws_iam_policy resource a valid JSON string body to apply. The assertions
+  # below are against the data source's configured statement, not this json.
   override_data {
     target = data.aws_iam_policy_document.read[0]
     values = {
-      json = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"ReadQualysSensorCredentials\",\"Effect\":\"Allow\",\"Action\":[\"secretsmanager:GetSecretValue\",\"secretsmanager:DescribeSecret\"],\"Resource\":[\"arn:aws:secretsmanager:us-east-1:123456789012:secret:qualys/container-security/credentials-AbCdEf\"]}]}"
+      json = "{}"
     }
   }
   assert {
@@ -46,8 +46,12 @@ run "creates_scoped_read_policy_when_asked" {
     error_message = "read policy not created"
   }
   assert {
-    condition     = jsondecode(aws_iam_policy.read[0].policy).Statement[0].Action == ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"]
-    error_message = "policy must grant only GetSecretValue and DescribeSecret"
+    condition     = tolist(data.aws_iam_policy_document.read[0].statement)[0].actions == toset(["secretsmanager:GetSecretValue"])
+    error_message = "read policy must grant only GetSecretValue"
+  }
+  assert {
+    condition     = tolist(data.aws_iam_policy_document.read[0].statement)[0].resources == toset([aws_secretsmanager_secret.this.arn])
+    error_message = "read policy must be scoped to this secret only"
   }
 }
 

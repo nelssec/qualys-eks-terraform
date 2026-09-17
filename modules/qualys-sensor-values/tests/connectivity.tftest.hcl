@@ -121,8 +121,21 @@ run "pull_secret_credentials_leave_yaml_and_go_to_set_sensitive" {
     error_message = "password must not appear in values YAML"
   }
   assert {
-    condition     = output.sensitive_set_values == [{ name = "global.imagePullSecrets[1].password", value = "s3cr3t" }]
+    condition     = jsonencode(output.sensitive_set_values) == jsonencode([{ name = "global.imagePullSecrets[1].password", value = "s3cr3t", type = "string" }])
     error_message = "password must be routed through sensitive_set_values"
+  }
+}
+
+run "pull_secret_password_is_escaped_for_helm_set" {
+  command = plan
+  variables {
+    image_pull_secrets = [
+      { name = "reg", create = true, registry_url = "registry.example.com", username = "svc", password = "a,b\\c" },
+    ]
+  }
+  assert {
+    condition     = output.sensitive_set_values[0].value == "a\\,b\\\\c"
+    error_message = "commas and backslashes must be escaped for Helm --set: got ${output.sensitive_set_values[0].value}"
   }
 }
 

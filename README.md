@@ -56,6 +56,8 @@ make test         # terraform test in every module
 make render-check # render fixtures through the real chart with helm lint/template
 ```
 
+Example lock files are committed and cover darwin/linux on amd64/arm64; refresh them with `terraform providers lock` when bumping providers.
+
 ## Versioning
 
 Semver git tags. Pin with `?ref=vX.Y.Z`. `CHANGELOG.md` calls out every chart default bump.

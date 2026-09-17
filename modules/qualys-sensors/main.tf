@@ -62,8 +62,8 @@ resource "helm_release" "this" {
 
   set_sensitive = concat(
     [
-      { name = "global.customerId", value = local.customer_id },
-      { name = "global.activationId", value = local.activation_id },
+      { name = "global.customerId", value = local.customer_id, type = "string" },
+      { name = "global.activationId", value = local.activation_id, type = "string" },
     ],
     module.values.sensitive_set_values,
   )

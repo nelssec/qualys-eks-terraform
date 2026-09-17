@@ -20,7 +20,7 @@ data "aws_iam_policy_document" "read" {
   statement {
     sid       = "ReadQualysSensorCredentials"
     effect    = "Allow"
-    actions   = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"]
+    actions   = ["secretsmanager:GetSecretValue"]
     resources = [aws_secretsmanager_secret.this.arn]
   }
 }

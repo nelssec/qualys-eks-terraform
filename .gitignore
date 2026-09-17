@@ -5,7 +5,8 @@
 *.tfvars
 !*.tfvars.example
 !tests/**/*.tfvars
-.terraform.lock.hcl
+modules/**/.terraform.lock.hcl
+tests/**/.terraform.lock.hcl
 crash.log
 override.tf
 override.tf.json
