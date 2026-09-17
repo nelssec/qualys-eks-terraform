@@ -1,0 +1,13 @@
+region               = "us-east-1"
+cluster_name         = "my-eks-cluster"
+qualys_platform      = "US2"
+qualys_customer_id   = "00000000-0000-0000-0000-000000000000"
+qualys_activation_id = "00000000-0000-0000-0000-000000000000"
+components = {
+  cluster_sensor       = true
+  qcs_sensor           = true
+  runtime_sensor       = false
+  admission_controller = false
+}
+sensor_tags = ["eks", "prod"]
+tags        = { owner = "platform-security" }
