@@ -28,3 +28,8 @@ output "sensitive_set_values" {
   value       = local.sensitive_set_values
   sensitive   = true
 }
+
+output "extra_values_yaml" {
+  description = "extra_values as YAML. Pass as the second entry of helm_release.values so Helm merges it over values_yaml."
+  value       = yamlencode(var.extra_values)
+}

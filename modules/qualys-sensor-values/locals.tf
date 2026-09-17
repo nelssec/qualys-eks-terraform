@@ -65,3 +65,34 @@ locals {
     )
   ])
 }
+
+locals {
+  # Convert an optional {limits, requests} object into a chart-shaped map with null fields removed.
+  cluster_sensor_resources = var.cluster_sensor.resources == null ? {} : {
+    for section, vals in { limits = var.cluster_sensor.resources.limits, requests = var.cluster_sensor.resources.requests } :
+    section => { for k, v in { cpu = vals.cpu, memory = vals.memory } : k => v if v != null } if vals != null
+  }
+  runtime_sensor_resources = var.runtime_sensor.resources == null ? {} : {
+    for section, vals in { limits = var.runtime_sensor.resources.limits, requests = var.runtime_sensor.resources.requests } :
+    section => { for k, v in { cpu = vals.cpu, memory = vals.memory } : k => v if v != null } if vals != null
+  }
+  admission_controller_resources = var.admission_controller.resources == null ? {} : {
+    for section, vals in { limits = var.admission_controller.resources.limits, requests = var.admission_controller.resources.requests } :
+    section => { for k, v in { cpu = vals.cpu, memory = vals.memory } : k => v if v != null } if vals != null
+  }
+  qcs_sensor_cont_resources = try(var.qcs_sensor.resources.sensor, null) == null ? {} : {
+    for section, vals in { limits = var.qcs_sensor.resources.sensor.limits, requests = var.qcs_sensor.resources.sensor.requests } :
+    section => { for k, v in { cpu = vals.cpu, memory = vals.memory } : k => v if v != null } if vals != null
+  }
+  qcs_scanning_cont_resources = try(var.qcs_sensor.resources.scanning, null) == null ? {} : {
+    for section, vals in { limits = var.qcs_sensor.resources.scanning.limits, requests = var.qcs_sensor.resources.scanning.requests } :
+    section => { for k, v in { cpu = vals.cpu, memory = vals.memory } : k => v if v != null } if vals != null
+  }
+
+  tolerations = [for t in var.tolerations : { for k, v in t : k => v if v != null }]
+
+  scheduling = {
+    nodeSelector = var.node_selector
+    tolerations  = local.tolerations
+  }
+}

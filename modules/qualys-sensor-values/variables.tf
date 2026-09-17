@@ -105,3 +105,141 @@ variable "sensor_tags" {
     error_message = "At most 10 sensor_tags are allowed by the sensors."
   }
 }
+
+variable "cluster_sensor" {
+  description = "Cluster Sensor options. Null fields fall back to chart defaults."
+  type = object({
+    k8s_compliance             = optional(bool, true)
+    host_scanner               = optional(bool, true)
+    host_scanner_run_on_master = optional(bool, true)
+    log_level                  = optional(string)
+    resources = optional(object({
+      limits   = optional(object({ cpu = optional(string), memory = optional(string) }))
+      requests = optional(object({ cpu = optional(string), memory = optional(string) }))
+    }))
+  })
+  default = {}
+
+  validation {
+    condition     = var.cluster_sensor.log_level == null || contains(["debug", "info", "warn", "error", "fatal"], coalesce(var.cluster_sensor.log_level, "info"))
+    error_message = "cluster_sensor.log_level must be one of debug, info, warn, error, fatal."
+  }
+}
+
+variable "qcs_sensor" {
+  description = "QCS (Container Security) Sensor options."
+  type = object({
+    concurrent_scan            = optional(number, 4)
+    perform_sca_scan           = optional(bool, false)
+    perform_secret_detection   = optional(bool, false)
+    perform_malware_detection  = optional(bool, false)
+    without_persistent_storage = optional(bool, false)
+    enable_console_logs        = optional(bool, false)
+    log_level                  = optional(number, 3)
+    populate_k8s_metadata      = optional(bool, false)
+    optimize_image_scans       = optional(bool, true)
+    resources = optional(object({
+      sensor = optional(object({
+        limits   = optional(object({ cpu = optional(string), memory = optional(string) }))
+        requests = optional(object({ cpu = optional(string), memory = optional(string) }))
+      }))
+      scanning = optional(object({
+        limits   = optional(object({ cpu = optional(string), memory = optional(string) }))
+        requests = optional(object({ cpu = optional(string), memory = optional(string) }))
+      }))
+    }))
+  })
+  default = {}
+
+  validation {
+    condition     = var.qcs_sensor.concurrent_scan >= 1 && var.qcs_sensor.concurrent_scan <= 20
+    error_message = "qcs_sensor.concurrent_scan must be between 1 and 20."
+  }
+  validation {
+    condition     = var.qcs_sensor.log_level >= 0 && var.qcs_sensor.log_level <= 5
+    error_message = "qcs_sensor.log_level must be between 0 (fatal) and 5 (trace)."
+  }
+}
+
+variable "runtime_sensor" {
+  description = "Container Runtime Sensor (CRS) options."
+  type = object({
+    process_allow_list      = optional(list(string), [])
+    event_global_rate_limit = optional(number, 200)
+    log_level               = optional(string, "info")
+    resources = optional(object({
+      limits   = optional(object({ cpu = optional(string), memory = optional(string) }))
+      requests = optional(object({ cpu = optional(string), memory = optional(string) }))
+    }))
+  })
+  default = {}
+
+  validation {
+    condition     = var.runtime_sensor.event_global_rate_limit >= 10 && var.runtime_sensor.event_global_rate_limit <= 500
+    error_message = "runtime_sensor.event_global_rate_limit must be between 10 and 500."
+  }
+  validation {
+    condition     = contains(["debug", "info", "warn", "error", "fatal"], var.runtime_sensor.log_level)
+    error_message = "runtime_sensor.log_level must be one of debug, info, warn, error, fatal."
+  }
+}
+
+variable "admission_controller" {
+  description = "Admission Controller options. Block mode denies non-compliant pods; start with Audit."
+  type = object({
+    enforcement_action = optional(string, "Audit")
+    failure_policy     = optional(string, "Ignore")
+    certs_provider     = optional(string, "helm")
+    resources = optional(object({
+      limits   = optional(object({ cpu = optional(string), memory = optional(string) }))
+      requests = optional(object({ cpu = optional(string), memory = optional(string) }))
+    }))
+  })
+  default = {}
+
+  validation {
+    condition     = contains(["Audit", "Block"], var.admission_controller.enforcement_action)
+    error_message = "admission_controller.enforcement_action must be Audit or Block."
+  }
+  validation {
+    condition     = contains(["Ignore", "Fail"], var.admission_controller.failure_policy)
+    error_message = "admission_controller.failure_policy must be Ignore or Fail."
+  }
+  validation {
+    condition     = contains(["helm", "cert-manager"], var.admission_controller.certs_provider)
+    error_message = "admission_controller.certs_provider must be helm or cert-manager."
+  }
+}
+
+variable "node_selector" {
+  description = "nodeSelector applied to every Qualys component."
+  type        = map(string)
+  default     = {}
+}
+
+variable "tolerations" {
+  description = "Tolerations applied to every Qualys component."
+  type = list(object({
+    key      = optional(string)
+    operator = string
+    value    = optional(string)
+    effect   = optional(string)
+  }))
+  default = []
+
+  validation {
+    condition     = alltrue([for t in var.tolerations : contains(["Exists", "Equal"], t.operator)])
+    error_message = "Every toleration operator must be Exists or Equal."
+  }
+}
+
+variable "extra_values" {
+  description = "Escape hatch: arbitrary qualys-tc values merged by Helm AFTER the rendered values, so they win on conflict. Must not contain global.customerId or global.activationId."
+  type        = any
+  default     = {}
+
+  validation {
+    condition     = !can(var.extra_values.global.customerId) && !can(var.extra_values.global.activationId)
+    error_message = "extra_values must not set global.customerId or global.activationId; credentials come from Secrets Manager."
+  }
+}
