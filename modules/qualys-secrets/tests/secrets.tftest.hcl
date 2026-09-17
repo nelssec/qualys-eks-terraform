@@ -31,6 +31,10 @@ run "creates_scoped_read_policy_when_asked" {
     create_read_policy = true
     read_policy_name   = "fadv-qualys-secret-read"
   }
+  # The mocked aws_iam_policy_document data source returns arbitrary JSON,
+  # so this override supplies a fixed policy document. The Statement[0].Action
+  # assertion therefore verifies the override literal, not the real statement
+  # block in main.tf; real policy content is exercised by the integration gate.
   override_data {
     target = data.aws_iam_policy_document.read[0]
     values = {
