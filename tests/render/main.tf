@@ -10,6 +10,14 @@ variable "qualys_platform" {
   type    = string
   default = "US2"
 }
+variable "gateway_url" {
+  type    = string
+  default = null
+}
+variable "cmsqag_public_url" {
+  type    = string
+  default = null
+}
 variable "components" {
   type    = any
   default = {}
@@ -72,6 +80,8 @@ module "values" {
 
   cluster_arn                = var.cluster_arn
   qualys_platform            = var.qualys_platform
+  gateway_url                = var.gateway_url
+  cmsqag_public_url          = var.cmsqag_public_url
   components                 = var.components
   container_runtime          = var.container_runtime
   proxy                      = var.proxy

@@ -41,13 +41,13 @@ for fixture in "$ROOT"/tests/fixtures/*.tfvars; do
   fi
 
   # Sanity checks on the rendered manifest.
-  kinds="$(grep -E '^kind:' "$WORK/$name.manifest.yaml" | sort | uniq -c | awk '{print $3":"$1}' | tr '\n' ' ')"
+  kinds="$(grep -E '^kind:' "$WORK/$name.manifest.yaml" | sort | uniq -c | awk '{print $3":"$1}' | tr '\n' ' ' || true)"
   echo "   kinds: $kinds"
-  grep -q 'kind: Deployment' "$WORK/$name.manifest.yaml" || { echo "   missing cluster sensor Deployment"; status=1; }
+  grep -qE '^kind: Deployment$' "$WORK/$name.manifest.yaml" || { echo "   missing cluster sensor Deployment"; status=1; }
   # qcs_sensor defaults to enabled and no fixture disables it, so a DaemonSet must always render.
-  grep -q 'kind: DaemonSet' "$WORK/$name.manifest.yaml" || { echo "   missing QCS sensor DaemonSet"; status=1; }
+  grep -qE '^kind: DaemonSet$' "$WORK/$name.manifest.yaml" || { echo "   missing QCS sensor DaemonSet"; status=1; }
   if grep -q 'admission_controller *= *true' "$fixture"; then
-    grep -q 'kind: ValidatingWebhookConfiguration' "$WORK/$name.manifest.yaml" || { echo "   missing ValidatingWebhookConfiguration"; status=1; }
+    grep -qE '^kind: ValidatingWebhookConfiguration$' "$WORK/$name.manifest.yaml" || { echo "   missing ValidatingWebhookConfiguration"; status=1; }
   fi
   if grep -q '^proxy' "$fixture"; then
     grep -q 'qualys_https_proxy' "$WORK/$name.manifest.yaml" || { echo "   proxy env not rendered into qcs-sensor"; status=1; }
