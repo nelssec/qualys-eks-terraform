@@ -22,3 +22,9 @@ output "enabled_components" {
   description = "Names of enabled components in canonical order."
   value       = local.enabled_components
 }
+
+output "sensitive_set_values" {
+  description = "Helm set_sensitive entries for image pull secret credentials. Concatenate into helm_release.set_sensitive."
+  value       = local.sensitive_set_values
+  sensitive   = true
+}
