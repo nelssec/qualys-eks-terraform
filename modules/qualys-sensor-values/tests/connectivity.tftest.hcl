@@ -135,7 +135,7 @@ run "pull_secret_password_is_escaped_for_helm_set" {
   }
   assert {
     condition     = output.sensitive_set_values[0].value == "a\\,b\\\\c"
-    error_message = "commas and backslashes must be escaped for Helm --set: got ${output.sensitive_set_values[0].value}"
+    error_message = "commas and backslashes must be escaped for Helm --set (expected a\\,b\\\\c)"
   }
 }
 
