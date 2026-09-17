@@ -1,0 +1,6 @@
+region               = "us-east-1"
+name                 = "qualys-eks-demo"
+admin_cidrs          = ["203.0.113.10/32"]
+qualys_platform      = "US2"
+qualys_customer_id   = "00000000-0000-0000-0000-000000000000"
+qualys_activation_id = "00000000-0000-0000-0000-000000000000"
