@@ -22,3 +22,6 @@ charts/qualys-tc/
 .DS_Store
 .idea/
 .vscode/
+
+# Superpowers SDD scratch
+.superpowers/
